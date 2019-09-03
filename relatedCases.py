@@ -12,8 +12,7 @@ MONGO_HOST = '13.113.158.197:37017'
 FILENAME = './files/years.txt'
 FILENAME_OK = 'years_relatedCases.ok.txt'
 
-RE_CITATION_1 = r"(最高|高等|行政)法院(著有)?([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號?(民事|刑事)?(、([○０一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○０一二三四五六七八九十0123456789]+)號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?參照"
-RE_CITATION_2 = r"參照(最高|高等|行政)法院(著有)?([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號?(民事|刑事)?(、[○０一二三四五六七八九十0123456789]+年度?\S{1,3}字第[○０一二三四五六七八九十0123456789]+號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?"
+RE_CITAION = r"([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號"
 
 def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
     graph = Graph("http://localhost:7474/db/data/", password="neo4j")
@@ -54,6 +53,25 @@ def find_refer_case(JYEAR, JCASE, JNO, JTYPE):
 
     return case
 
+def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
+    if re.search(r"^\d+$", year) == None:
+        year = convert_chinese_num_to_en_num(year)
+    if re.search(r"^\d+$", no) == None:
+        no = convert_chinese_num_to_en_num(no)
+
+    yearcaseno2 = str(year) + jcase + str(no)
+    print(yearcaseno2)
+    case2 = find_refer_case(year, jcase, no, type)
+
+    if case2 is not None:
+        yearcaseno2 = str(case2['JYEAR']) + case2['JCASE'] + str(case2['JNO'])
+        id2 = case2['_id']
+        add_to_graph(yearcaseno, id, yearcaseno2, id2)
+    else:
+        add_to_graph(yearcaseno, id, yearcaseno2, None)
+
+    return
+
 def process_year_from_mongo(year):
     conn = MongoClient(MONGO_HOST)
     db = conn.TW_case
@@ -73,33 +91,13 @@ def process_year_from_mongo(year):
             print(citations)
 
             for citation in citations:
-                match = re.search(RE_CITATION_1, citation)
-                if match is None:
-                    match = re.search(RE_CITATION_2, citation)
+                pattern = re.compile(RE_CITAION)
+                for match in re.finditer(pattern, citation):
+                    year = match.group(1)
+                    jcase = match.group(2)
+                    no = match.group(3)
+                    find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no)
 
-                if match is not None:
-                    year = match.group(3)
-                    jcase = match.group(4)
-                    no = match.group(5)
-                    if re.search(r"^\d+$", year) == None:
-                        year = convert_chinese_num_to_en_num(year)
-                    if re.search(r"^\d+$", no) == None:
-                        no = convert_chinese_num_to_en_num(no)
-
-                    yearcaseno2 = str(year) + jcase + str(no)
-                    print(yearcaseno2)
-                    case2 = find_refer_case(year, jcase, no, type)
-
-                    if case2 is not None:
-                        yearcaseno2 = str(case2['JYEAR']) + case2['JCASE'] + str(case2['JNO'])
-                        id2 = case2['_id']
-                        add_to_graph(yearcaseno, id, yearcaseno2, id2)
-                    else:
-                        add_to_graph(yearcaseno, id, yearcaseno2, None)
-
-                else:
-                    print("no match, citation: " + citation)
-                    pass
 
         skip += limit
 
