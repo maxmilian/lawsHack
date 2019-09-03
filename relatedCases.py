@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
 import sys
 import re
 import pprint
 from py2neo import Graph
 from pymongo import MongoClient
 from utils import convert_chinese_num_to_en_num
+from utils import load_files
 
 MONGO_HOST = '13.113.158.197:37017'
 # MONGO_HOST = 'localhost:37017'
@@ -15,12 +15,22 @@ FILENAME_OK = 'years.ok.txt'
 RE_CITATION_1 = r"(最高|高等|行政)法院(著有)?([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號?(民事|刑事)?(、[○０一二三四五六七八九十0123456789]+年\S{1,3}字第[○０一二三四五六七八九十0123456789]+號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?參照"
 RE_CITATION_2 = r"參照(最高|高等|行政)法院(著有)?([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號?(民事|刑事)?(、[○０一二三四五六七八九十0123456789]+年\S{1,3}字第[○０一二三四五六七八九十0123456789]+號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?"
 
-def find_case(JYEAR, JCASE, JNO, JTYPE):
+def find_related_case(JYEAR, JCASE, JNO, JTYPE):
     conn = MongoClient(MONGO_HOST)
     db = conn.TW_case
     # count = db.TW_case.count({"JYEAR": {"$or": [str(JYEAR), int(JYEAR)]}, "JNO": {"$or": [str(JNO), int(JNO)]}, "JCASE": JCASE})
     count = db.TW_case.count({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
     print("count: " + str(count))
+    if count == 0:
+        return None
+
+    if count == 1:
+        case = db.TW_case.find({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
+    elif count == 2:
+        case = db.TW_case.find({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE, "JTYPE": JTYPE})
+
+    return case
+
 
 def get_year_from_mongo(year):
     conn = MongoClient(MONGO_HOST)
@@ -29,7 +39,7 @@ def get_year_from_mongo(year):
     skip = 0
     limit = 1000
 
-    graph = Graph("http://localhost:7474", user="neo4j", password="neo4j")
+    graph = Graph("http://localhost:7474/db/data/", user="neo4j", password="neo4j")
     # graph = Graph(
     #     host = "localhost", # neo4j 搭载服务器的ip地址，ifconfig可获取到
     #     http_port = 7978, # neo4j 服务器监听的端口号
@@ -63,7 +73,10 @@ def get_year_from_mongo(year):
 
 
                 print(str(year) + " " + case + " " + str(no))
-                case2 = find_case(year, case, no, type)
+                case2 = find_related_case(year, case, no, type)
+
+                if case2 is not None:
+                    pass
 
                 # node_1 = Node("CASE", case)
                 # node_2 = Node("CASE", case2)
@@ -79,16 +92,6 @@ def get_year_from_mongo(year):
                 pass
 
         skip += limit
-
-def load_files(filename):
-    if not os.path.isfile(filename):
-        return []
-
-    lists = []
-    with open(filename, 'r') as f:
-        for line in f.readlines():
-            lists.append(line.strip())
-    return lists
 
 if __name__== "__main__":
 

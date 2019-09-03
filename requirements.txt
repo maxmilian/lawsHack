@@ -1,2 +1,2 @@
-pymongo
-py2neo
+pymongo >= 3.8.1
+py2neo >= 4.3.0

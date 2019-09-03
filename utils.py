@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 def convert_chinese_num_to_en_num(string):
     i = 0
@@ -54,6 +55,8 @@ def convert_chinese_num_to_en_num(string):
                 i = int(i / 10)
         elif ch == '○':
             pass
+        elif ch == '０':
+            pass
         else:
             print("no match, string: " + string)
 
@@ -61,3 +64,13 @@ def convert_chinese_num_to_en_num(string):
         current += 1
 
     return i
+
+def load_files(filename):
+    if not os.path.isfile(filename):
+        return []
+
+    lists = []
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            lists.append(line.strip())
+    return lists

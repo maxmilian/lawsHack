@@ -1,5 +1,6 @@
 import time
 from utils import convert_chinese_num_to_en_num
+from citation import get_year_from_mongo
 
 def test_convert_chinese_num_to_en_num():
     string = "九十七"
@@ -53,6 +54,6 @@ def test_convert_chinese_num_to_en_num():
         print(string + " != " + str(convert_chinese_num_to_en_num(string)))
 
 
-
 if __name__== "__main__":
     test_convert_chinese_num_to_en_num()
+    # get_year_from_mongo(107)

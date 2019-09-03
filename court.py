@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
 import sys
 import re
 import pprint
 from pymongo import MongoClient
+from utils import load_files
 
 # MONGO_HOST = '13.113.158.197:37017'
 MONGO_HOST = 'localhost:37017'
@@ -13,7 +13,7 @@ FILENAME_OK = 'years.ok.txt'
 def get_year_from_mongo(year):
     conn = MongoClient(MONGO_HOST)
     db = conn.TW_case
-    count = db.TW_case.count({"JYEAR": str(year)})
+    count = db.TW_case.count({"JYEAR": int(year)})
     skip = 0
     limit = 5000
 
@@ -21,7 +21,7 @@ def get_year_from_mongo(year):
 
     while (skip < count):
         print('skip: ' + str(skip))
-        for case in db.TW_case.find({"JYEAR": str(year)}, {"_id": 1}).skip(skip).limit(limit):
+        for case in db.TW_case.find({"JYEAR": int(year)}, {"_id": 1}).skip(skip).limit(limit):
             id = case['_id']
             court = id[:3]
             type = id[3:4]
@@ -29,16 +29,6 @@ def get_year_from_mongo(year):
             db.TW_case.find_one_and_update({'_id': id}, {'$set': {'JCOURT': court, 'JTYPE': type}})
 
         skip += limit
-
-def load_files(filename):
-    if not os.path.isfile(filename):
-        return []
-
-    lists = []
-    with open(filename, 'r') as f:
-        for line in f.readlines():
-            lists.append(line.strip())
-    return lists
 
 if __name__== "__main__":
     print('main')
