@@ -3,24 +3,24 @@ import sys
 import re
 import pprint
 from pymongo import MongoClient
-from utils import load_files
+from utils import process_mongo_year
 
 MONGO_HOST = '13.113.158.197:37017'
 # MONGO_HOST = 'localhost:37017'
 FILENAME = './files/years.txt'
-FILENAME_OK = 'years.ok.txt'
+FILENAME_OK = 'years_citation.ok.txt'
 
 RE_CITATION_1 = r"(最高|高等|行政)法院(著有)?[○００一二三四五六七八九十0123456789]+年度?\S{1,3}字第[○００一二三四五六七八九十0123456789]+號?(民事|刑事)?(、[○０一二三四五六七八九十0123456789]+年\S{1,3}字第[○０一二三四五六七八九十0123456789]+號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?參照"
 RE_CITATION_2 = r"參照(最高|高等|行政)法院(著有)?[○００一二三四五六七八九十0123456789]+年度?\S{1,3}字第[○００一二三四五六七八九十0123456789]+號?(民事|刑事)?(、[○０一二三四五六七八九十0123456789]+年\S{1,3}字第[○０一二三四五六七八九十0123456789]+號)*(著有)?(判例|判決|裁判)?(可資|足資|意旨|要旨)?"
 
-def get_year_from_mongo(year):
+def process_year_from_mongo(year):
     conn = MongoClient(MONGO_HOST)
     db = conn.TW_case
     count = db.TW_case.count({"JYEAR": int(year)})
     skip = 0
     limit = 5000
 
-    print('get_year_from_mongo: ' + str(year))
+    print('process_year_from_mongo: ' + str(year))
 
     while (skip < count):
         print('skip: ' + str(skip))
@@ -68,30 +68,6 @@ if __name__== "__main__":
         print("split: " + str(split) + " offset: " + str(offset))
         print("todo_file: " + todo_file + "\nok_file: " + str(ok_file))
 
-    todo_list = load_files(todo_file)
-    if len(todo_list) <= 0:
-        print(todo_file + ' is not exits or empty')
-        exit()
-
-    print('todo: ')
-    print(todo_list)
-
-    done_list = load_files(ok_file)
-    if len(todo_list) <= 0:
-        f = open(ok_file, "w")
-        f.close()
-
-    print('done: ')
-    print(done_list)
-
-    for year in todo_list:
-        if year in done_list:
-            print(str(year) + ' is done')
-            continue
-        get_year_from_mongo(year)
-
-        with open(ok_file, 'a+') as f:
-            f.write(year + "\n")
-            f.close()
+    process_mongo_year(todo_file, ok_file, process_year_from_mongo)
 
     print('completed')

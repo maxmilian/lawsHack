@@ -74,3 +74,32 @@ def load_files(filename):
         for line in f.readlines():
             lists.append(line.strip())
     return lists
+
+
+def process_mongo_year(todo_file, done_file, processor):
+    todo_list = load_files(todo_file)
+    if len(todo_list) <= 0:
+        print(todo_file + ' is not exits or empty')
+        exit()
+
+    print('todo: ')
+    print(todo_list)
+
+    done_list = load_files(done_file)
+    if len(todo_list) <= 0:
+        f = open(done_file, "w")
+        f.close()
+
+    print('done: ')
+    print(done_list)
+
+    for year in todo_list:
+        if year in done_list:
+            print(str(year) + ' is done')
+            continue
+
+        processor(year)
+
+        with open(done_file, 'a+') as f:
+            f.write(year + "\n")
+            f.close()

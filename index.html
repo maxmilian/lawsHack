@@ -30,7 +30,7 @@
                 server_password: "neo4j",
                 labels: {
                     "Character": {
-                        "caption": "name",
+                        "caption": "yearcaseno",
                         "size": "pagerank",
                         "community": "community"
                     }
@@ -41,7 +41,7 @@
                         "caption": false
                     }
                 },
-                initial_cypher: "MATCH (n)-[r:INTERACTS]->(m) RETURN *"
+                initial_cypher: "MATCH (n)-[r:REFER]->(m) RETURN *"
             };
 
             viz = new NeoVis.default(config);
