@@ -28,3 +28,18 @@ nohup python3 -u court.py 4 2 > court_4_2.log &
 nohup python3 -u court.py 4 3 > court_4_3.log &
 nohup python3 -u court.py 4 4 > court_4_4.log &
 ```
+
+# 修改數據格式
+
+```sh
+db.TW_case.find({JYEAR:{$type:2}}).forEach(function(obj) {
+  obj.JYEAR = new NumberInt(obj.JYEAR);
+  db.TW_case.save(obj);
+});
+
+
+db.TW_case.find({JNO:{$type:2}}).forEach(function(obj) {
+    obj.JNO = new NumberInt(obj.JNO);
+    db.TW_case.save(obj);
+});
+```

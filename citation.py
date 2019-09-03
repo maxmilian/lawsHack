@@ -22,7 +22,7 @@ def get_content_from_mongo(id):
 def get_year_from_mongo(year):
     conn = MongoClient(MONGO_HOST)
     db = conn.TW_case
-    count = db.TW_case.count({"JYEAR": str(year)})
+    count = db.TW_case.count({"JYEAR": int(year)})
     skip = 0
     limit = 5000
 
@@ -30,17 +30,17 @@ def get_year_from_mongo(year):
 
     while (skip < count):
         print('skip: ' + str(skip))
-        for case in db.TW_case.find({"JYEAR": str(year)}, {"_id": 1, "JFULL": 1}).skip(skip).limit(limit):
+        for case in db.TW_case.find({"JYEAR": int(year)}, {"_id": 1, "JFULL": 1}).skip(skip).limit(limit):
             id = case['_id']
             content = case['JFULL']
             if "參照" in content or "參考" in content:
                 content = re.sub(r'\r?\n', '', content)
-                x = re.search(RE_CITATION_1, content)
-                if x is None:
-                    x = re.search(RE_CITATION_2, content)
+                match = re.search(RE_CITATION_1, content)
+                if match is None:
+                    match = re.search(RE_CITATION_2, content)
 
-                if x is not None:
-                    citation = x.group()
+                if match is not None:
+                    citation = match.group()
                     print(id + "\n" + citation)
                     db.TW_case.find_one_and_update({'_id': id}, {'$set': {'JCITATION': citation}})
                 else:
