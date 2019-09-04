@@ -57,6 +57,8 @@ def convert_chinese_num_to_en_num(string):
             pass
         elif ch == '０':
             pass
+        elif ch == '0':
+            pass
         else:
             print("no match, string: " + string)
 

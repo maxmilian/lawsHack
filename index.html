@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
     <head>
-        <title>Neovis.js Simple Example</title>
+        <title>理狗駭：法律引用網絡分析</title>
+        <meta charset="UTF-8">
         <style type="text/css">
             html, body {
                 font: 16pt arial;
@@ -16,37 +17,74 @@
         </style>
     </head>
     <body onload="draw()">
-        <div id="viz"></div>
-        <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
-        <script type="text/javascript">
+        <div style="display: inline-block; width: 200px;">
+            <div style="margin: 10px;">
+                <lable>數量</label><br/>
+                <label for="limit_all">全部</label>
+                <input type="radio" name="limit" id="limit_all" value="all"><br/>
+                <label for="limit_3000">3000</label>
+                <input type="radio" name="limit" id="limit_3000" value="3000"><br/>
+                <label for="limit_1000">1000</label>
+                <input type="radio" name="limit" id="limit_1000" value="1000" checked><br/>
+                <label for="limit_500">500</label>
+                <input type="radio" name="limit" id="limit_500" value="500">
+            </div>
+            <div style="margin: 10px;">
+                <lable>PageRank</label><br/>
+                <label for="pagerank_15">大於 0.15</label>
+                <input type="radio" name="pagerank" id="pagerank_15" value="0.15"><br/>
+                <label for="pagerank_18">大於 0.18</label>
+                <input type="radio" name="pagerank" id="pagerank_18" value="0.18" checked><br/>
+                <label for="pagerank_21">大於 0.21</label>
+                <input type="radio" name="pagerank" id="pagerank_21" value="0.21"><br/>
+                <label for="pagerank_50">大於 0.5</label>
+                <input type="radio" name="pagerank" id="pagerank_50" value="0.5">
+            </div>
+            <div style="margin: 10px;">
+                <button>套用</button>
+            </div>
+        </div>
+        <div id="viz" style="display: inline-block;"></div>
 
+        <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script type="text/javascript">
         var viz;
+        var config = {
+            container_id: "viz",
+            server_url: "bolt://13.113.158.197:7687",
+            server_user: "neo4j",
+            server_password: "aDeRTYlenTor",
+            labels: {
+                "Case": {
+                    "caption": "yearcaseno",
+                    "size": "pagerank",
+                    "community": "community",
+                    //"sizeCypher": "MATCH (n) WHERE id(n) = {id} MATCH (n)-[r]-() RETURN sum(r.weight) AS c"
+                }
+            },
+            relationships: {
+                "REFER": {
+                    "thickness": "weight",
+                    "caption": false
+                }
+            },
+            initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000",
+            arrows: false,
+            console_debug: true
+        };
 
         function draw() {
-            var config = {
-                container_id: "viz",
-                server_url: "bolt://localhost:7687",
-                server_user: "neo4j",
-                server_password: "neo4j",
-                labels: {
-                    "Character": {
-                        "caption": "yearcaseno",
-                        "size": "pagerank",
-                        "community": "community"
-                    }
-                },
-                relationships: {
-                    "INTERACTS": {
-                        "thickness": "weight",
-                        "caption": false
-                    }
-                },
-                initial_cypher: "MATCH (n)-[r:REFER]->(m) RETURN *"
-            };
-
             viz = new NeoVis.default(config);
             viz.render();
         }
+
+        $("button").click(function() {
+            var limit = $("input[name=limit]:checked").val();
+            var pagerank = $("input[name=pagerank]:checked").val();
+            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, n.pagerank LIMIT " + limit;
+            viz.renderWithCypher(cypher);
+        });
     </script>
     </body>
 </html>

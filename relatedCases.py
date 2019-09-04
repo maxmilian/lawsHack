@@ -12,8 +12,8 @@ RE_CITAION = r"([○００一二三四五六七八九十0123456789]+)年度?(\S{
 
 MONGO_HOST = '13.113.158.197:37017'
 # MONGO_HOST = 'localhost:37017'
-NEO4J_PASSWORD = "neo4j"
-# NEO4J_PASSWORD = "EibotiG^ZSDXaVxc"
+# NEO4J_PASSWORD = "neo4j"
+NEO4J_PASSWORD = "aDeRTYlenTor"
 
 def get_mongo_collection():
     conn = MongoClient(MONGO_HOST)
@@ -36,8 +36,8 @@ def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
     rel = Relationship(node_1, "REFER", node_2)
 
     tx = graph.begin()
-    tx.merge(node_1, primary_label='Case', primary_key=('yearcaseno'))
-    tx.merge(node_2, primary_label='Case', primary_key=('yearcaseno'))
+    tx.merge(node_1, primary_label='Case', primary_key='yearcaseno')
+    tx.merge(node_2, primary_label='Case', primary_key='yearcaseno')
     tx.merge(rel)
     tx.commit()
 
@@ -53,7 +53,7 @@ def find_refer_case(JYEAR, JCASE, JNO, JTYPE):
     if count == 1:
         case = collection.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
         print("1 got it " + case['_id'])
-    elif count == 2:
+    elif count >= 2:
         case = collection.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE, "JTYPE": JTYPE})
         print("2 got it " + case['_id'])
 
@@ -67,7 +67,8 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
 
     yearcaseno2 = str(year) + jcase + str(no)
     print(yearcaseno2)
-    case2 = find_refer_case(year, jcase, no, type)
+    # case2 = find_refer_case(year, jcase, no, type)
+    case2 = None
 
     if case2 is not None:
         yearcaseno2 = str(case2['JYEAR']) + case2['JCASE'] + str(case2['JNO'])
@@ -87,7 +88,7 @@ def process_year_from_mongo(year):
     print('process_year_from_mongo: ' + str(year))
 
     while (skip < count):
-        print('skip: ' + str(skip))
+        print("skip: " + str(skip))
         case_list = []
 
         for case in collection.find({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JCITATION": 1}).skip(skip).limit(limit):
@@ -102,10 +103,10 @@ def process_year_from_mongo(year):
             for citation in citations:
                 pattern = re.compile(RE_CITAION)
                 for match in re.finditer(pattern, citation):
-                    year = match.group(1)
+                    jyear = match.group(1)
                     jcase = match.group(2)
-                    no = match.group(3)
-                    find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no)
+                    jno = match.group(3)
+                    find_refer_case_and_add_to_graph(yearcaseno, id, type, jyear, jcase, jno)
 
 
         skip += limit
