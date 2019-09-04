@@ -64,6 +64,7 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
         year = convert_chinese_num_to_en_num(year)
     if re.search(r"^\d+$", no) == None:
         no = convert_chinese_num_to_en_num(no)
+    jcase = jcase.replace('臺', '台') # 臺上 => 台上
 
     yearcaseno2 = str(year) + jcase + str(no)
     print(yearcaseno2)
@@ -97,7 +98,8 @@ def process_year_from_mongo(year):
         for case in case_list:
             id = case['_id']
             type = case['JTYPE']
-            yearcaseno = str(case['JYEAR']) + case['JCASE'] + str(case['JNO'])
+            jcase = case['JCASE'].replace('臺', '台')
+            yearcaseno = str(case['JYEAR']) + jcase + str(case['JNO'])
             citations = case['JCITATION']
 
             for citation in citations:
