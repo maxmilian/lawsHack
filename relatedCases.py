@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
 import sys
 import re
-import pprint
 from py2neo import Graph,Node,Relationship
 from pymongo import MongoClient
 from utils import convert_chinese_num_to_en_num
 from utils import process_mongo_year
 
-MONGO_HOST = '13.113.158.197:37017'
-# MONGO_HOST = 'localhost:37017'
 FILENAME = './files/years.txt'
 FILENAME_OK = 'years_relatedCases.ok.txt'
-
 RE_CITAION = r"([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號"
 
+MONGO_HOST = '13.113.158.197:37017'
+# MONGO_HOST = 'localhost:37017'
+NEO4J_PASSWORD = "neo4j"
+# NEO4J_PASSWORD = "EibotiG^ZSDXaVxc"
+
+def get_mongo_collection():
+    conn = MongoClient(MONGO_HOST)
+    db = conn.TW_case
+    return db.TW_case
+
 def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
-    graph = Graph("http://localhost:7474/db/data/", password="neo4j")
+    graph = Graph("http://localhost:7474/db/data/", password=NEO4J_PASSWORD)
     # graph.delete_all()
 
     if id1 is not None:
@@ -36,19 +42,19 @@ def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
     tx.commit()
 
 def find_refer_case(JYEAR, JCASE, JNO, JTYPE):
-    conn = MongoClient(MONGO_HOST)
-    db = conn.TW_case
-    # count = db.TW_case.count({"JYEAR": {"$or": [str(JYEAR), int(JYEAR)]}, "JNO": {"$or": [str(JNO), int(JNO)]}, "JCASE": JCASE})
-    count = db.TW_case.count({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
+    collection = get_mongo_collection()
+
+    # count = collection.count({"JYEAR": {"$or": [str(JYEAR), int(JYEAR)]}, "JNO": {"$or": [str(JNO), int(JNO)]}, "JCASE": JCASE})
+    count = collection.count({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
     print("count: " + str(count))
     if count == 0:
         return None
 
     if count == 1:
-        case = db.TW_case.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
+        case = collection.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE})
         print("1 got it " + case['_id'])
     elif count == 2:
-        case = db.TW_case.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE, "JTYPE": JTYPE})
+        case = collection.find_one({"JYEAR": int(JYEAR), "JNO": int(JNO), "JCASE": JCASE, "JTYPE": JTYPE})
         print("2 got it " + case['_id'])
 
     return case
@@ -73,9 +79,8 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
     return
 
 def process_year_from_mongo(year):
-    conn = MongoClient(MONGO_HOST)
-    db = conn.TW_case
-    count = db.TW_case.count({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]})
+    collection = get_mongo_collection()
+    count = collection.count({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]})
     skip = 0
     limit = 1000
 
@@ -83,12 +88,16 @@ def process_year_from_mongo(year):
 
     while (skip < count):
         print('skip: ' + str(skip))
-        for case in db.TW_case.find({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]}).skip(skip).limit(limit):
+        case_list = []
+
+        for case in collection.find({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JCITATION": 1}).skip(skip).limit(limit):
+            case_list.append(case)
+
+        for case in case_list:
             id = case['_id']
             type = case['JTYPE']
             yearcaseno = str(case['JYEAR']) + case['JCASE'] + str(case['JNO'])
             citations = case['JCITATION']
-            print(citations)
 
             for citation in citations:
                 pattern = re.compile(RE_CITAION)

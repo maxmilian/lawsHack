@@ -37,4 +37,14 @@ nohup python3 -u citation.py 4 1 > citation_4_1.log &
 nohup python3 -u citation.py 4 2 > citation_4_2.log &
 nohup python3 -u citation.py 4 3 > citation_4_3.log &
 nohup python3 -u citation.py 4 4 > citation_4_4.log &
+
+# import 至 neo4j
+nohup python3 -u relatedCases.py 8 1 > relatedCases_8_1.log &
+nohup python3 -u relatedCases.py 8 2 > relatedCases_8_2.log &
+nohup python3 -u relatedCases.py 8 3 > relatedCases_8_3.log &
+nohup python3 -u relatedCases.py 8 4 > relatedCases_8_4.log &
+nohup python3 -u relatedCases.py 8 5 > relatedCases_8_5.log &
+nohup python3 -u relatedCases.py 8 6 > relatedCases_8_6.log &
+nohup python3 -u relatedCases.py 8 7 > relatedCases_8_7.log &
+nohup python3 -u relatedCases.py 8 8 > relatedCases_8_8.log &
 ```
