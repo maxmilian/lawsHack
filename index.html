@@ -19,7 +19,7 @@
             <div class="filter">
                 <div style="margin: 15px; font-size: 24px;">
                     判決數:<br/>
-                    <span class="statistics">1,1902,683</span><br/>
+                    <span id="count_case" class="statistics">-</span><br/>
                     判決年度:<br/>
                     <span class="statistics">1996 - 2019</span><br/>
                     節點數:<br/>
@@ -49,7 +49,7 @@
                         <select name="pagerank">
                             <option value="0.5">最重要</option>
                             <option value="0.24">重要</option>
-                            <option value="0.21">普通</option>
+                            <option value="0.21" selected>普通</option>
                             <option value="0.18">不重要</option>
                             <option value="0.15">最不重要</option>
                         </select>
@@ -95,7 +95,7 @@
                     "caption": false
                 }
             },
-            initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000",
+            initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000",
             arrows: showArrows,
             console_debug: false
         };
@@ -136,7 +136,7 @@
         $("#apply").click(function() {
             var limit = $("select[name=limit]").val();
             var pagerank = $("select[name=pagerank]").val();
-            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000";
+            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
             if ($("#yearcaseno").val() != "") {
                 var yearcaseno = $("#yearcaseno").val();
                 cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + yearcaseno + "' RETURN *";
@@ -161,7 +161,11 @@
         });
 
         $(document).ready(function() {
-            draw();
+            $.get("rest/count_case", function(data) {
+                $("#count_case").text(numeral(data.count).format('0,0'));
+            }).fail(function() {
+                $("#count_node").text('0');
+            });
             $.get("rest/count_node", function(data) {
                 $("#count_node").text(numeral(data.count).format('0,0'));
             }).fail(function() {
@@ -172,6 +176,7 @@
             }).fail(function() {
                 $("#count_relation").text('0');
             });
+            draw();
         });
     </script>
     </body>
