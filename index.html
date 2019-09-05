@@ -16,12 +16,20 @@
             }
         </style>
     </head>
-    <body onload="draw()">
+    <body>
         <div style="display: inline-block; width: 200px;">
-            <div style="margin: 10px;">
+            <div style="margin: 15px; font-size: 24px;">
+                <lable>節點數:</label><br/>
+                <span id="count_node"></span><br/>
+                <lable>引用數:</label><br/>
+                <span id="count_relation"></span>
+            </div>
+            <div style="margin: 15px; font-size: 20px;">
                 <lable>數量</label><br/>
                 <label for="limit_all">全部</label>
                 <input type="radio" name="limit" id="limit_all" value="all"><br/>
+                <label for="limit_5000">5000</label>
+                <input type="radio" name="limit" id="limit_5000" value="5000"><br/>
                 <label for="limit_3000">3000</label>
                 <input type="radio" name="limit" id="limit_3000" value="3000"><br/>
                 <label for="limit_1000">1000</label>
@@ -29,7 +37,7 @@
                 <label for="limit_500">500</label>
                 <input type="radio" name="limit" id="limit_500" value="500">
             </div>
-            <div style="margin: 10px;">
+            <div style="margin: 15px; font-size: 20px;">
                 <lable>PageRank</label><br/>
                 <label for="pagerank_15">大於 0.15</label>
                 <input type="radio" name="pagerank" id="pagerank_15" value="0.15"><br/>
@@ -40,6 +48,9 @@
                 <label for="pagerank_50">大於 0.5</label>
                 <input type="radio" name="pagerank" id="pagerank_50" value="0.5">
             </div>
+            <div style="margin: 15px; font-size: 20px;">
+                <label><input type="checkbox" id="arrows" checked>顯示方向</label>
+            </div>
             <div style="margin: 10px;">
                 <button>套用</button>
             </div>
@@ -48,8 +59,10 @@
 
         <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
         <script type="text/javascript">
         var viz;
+        var showArrows = true;
         var config = {
             container_id: "viz",
             server_url: "bolt://13.113.158.197:7687",
@@ -70,7 +83,7 @@
                 }
             },
             initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000",
-            arrows: false,
+            arrows: showArrows,
             console_debug: true
         };
 
@@ -83,7 +96,25 @@
             var limit = $("input[name=limit]:checked").val();
             var pagerank = $("input[name=pagerank]:checked").val();
             var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, n.pagerank LIMIT " + limit;
-            viz.renderWithCypher(cypher);
+            if ($("#arrows").is(":checked") != showArrows) {
+                config.arrows = $("#arrows").is(":checked");
+                config.initial_cypher = cypher;
+                viz.reinit(config);
+
+                showArrows = $("#arrows").is(":checked");
+            } else {
+                viz.renderWithCypher(cypher);
+            }
+        });
+
+        $(document).ready(function() {
+            draw();
+            $.get("rest/count_node", function(data) {
+                $("#count_node").text(numeral(data.count).format('0,0'));
+            });
+            $.get("rest/count_relation", function(data) {
+                $("#count_relation").text(numeral(data.count).format('0,0'));
+            });
         });
     </script>
     </body>
