@@ -27,10 +27,14 @@ nohup python3 -u court.py 4 3 > court_4_3.log &
 nohup python3 -u court.py 4 4 > court_4_4.log &
 
 # 解析引用判決
-nohup python3 -u citation.py 4 1 > citation_4_1.log &
-nohup python3 -u citation.py 4 2 > citation_4_2.log &
-nohup python3 -u citation.py 4 3 > citation_4_3.log &
-nohup python3 -u citation.py 4 4 > citation_4_4.log &
+nohup python3 -u citation.py 8 1 > citation_8_1.log &
+nohup python3 -u citation.py 8 2 > citation_8_2.log &
+nohup python3 -u citation.py 8 3 > citation_8_3.log &
+nohup python3 -u citation.py 8 4 > citation_8_4.log &
+nohup python3 -u citation.py 8 5 > citation_8_5.log &
+nohup python3 -u citation.py 8 6 > citation_8_6.log &
+nohup python3 -u citation.py 8 7 > citation_8_7.log &
+nohup python3 -u citation.py 8 8 > citation_8_8.log &
 
 # import 至 neo4j
 nohup python3 -u relatedCases.py > relatedCases.log &

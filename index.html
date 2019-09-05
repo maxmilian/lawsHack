@@ -67,6 +67,7 @@
         <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+        <script src="jquery.loading.min.js"></script>
         <script type="text/javascript">
         var viz;
         var showArrows = true;
@@ -99,8 +100,14 @@
             console_debug: false
         };
 
+        function renderCompleted(stats) {
+            console.log("Completed with", stats.record_count, "records");
+            $('#viz').loading('stop');
+        }
+
         function draw() {
             viz = new NeoVis.default(config);
+            viz.registerOnEvent('completed', renderCompleted);
             viz.render();
         }
 
@@ -144,10 +151,12 @@
             if ($("#arrows").is(":checked") != showArrows) {
                 config.arrows = $("#arrows").is(":checked");
                 config.initial_cypher = cypher;
+                $("#viz").loading();
                 viz.reinit(config);
 
                 showArrows = $("#arrows").is(":checked");
             } else {
+                $("#viz").loading();
                 viz.renderWithCypher(cypher);
             }
         });
@@ -168,6 +177,7 @@
             }).fail(function() {
                 $("#count_relation").text('0');
             });
+            $("#viz").loading();
             draw();
         });
     </script>
