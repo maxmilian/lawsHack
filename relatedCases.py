@@ -10,8 +10,8 @@ FILENAME = './files/years.txt'
 FILENAME_OK = 'years_relatedCases.ok.txt'
 RE_CITAION = r"([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號"
 
-MONGO_HOST = '13.113.158.197:37017'
-# MONGO_HOST = 'localhost:37017'
+# MONGO_HOST = '13.113.158.197:37017'
+MONGO_HOST = 'localhost:37017'
 # NEO4J_PASSWORD = "neo4j"
 NEO4J_PASSWORD = "aDeRTYlenTor"
 
@@ -20,11 +20,11 @@ def get_mongo_collection():
     db = conn.TW_case
     return db.TW_case
 
-def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
+def add_to_graph(yearcaseno1, id1, title1, yearcaseno2, id2):
     graph = Graph("http://localhost:7474/db/data/", password=NEO4J_PASSWORD)
 
     if id1 is not None:
-        node_1 = Node("CASE", yearcaseno=yearcaseno1, id=id1)
+        node_1 = Node("CASE", yearcaseno=yearcaseno1, id=id1, title=title1)
     else:
         node_1 = Node("CASE", yearcaseno=yearcaseno1)
 
@@ -58,7 +58,7 @@ def find_refer_case(JYEAR, JCASE, JNO, JTYPE):
 
     return case
 
-def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
+def find_refer_case_and_add_to_graph(yearcaseno, id, type, title, year, jcase, no):
     if re.search(r"^\d+$", year) == None:
         year = convert_chinese_num_to_en_num(year)
     if re.search(r"^\d+$", no) == None:
@@ -73,9 +73,9 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
     if case2 is not None:
         yearcaseno2 = str(case2['JYEAR']) + case2['JCASE'] + str(case2['JNO'])
         id2 = case2['_id']
-        add_to_graph(yearcaseno, id, yearcaseno2, id2)
+        add_to_graph(yearcaseno, id, title, yearcaseno2, id2)
     else:
-        add_to_graph(yearcaseno, id, yearcaseno2, None)
+        add_to_graph(yearcaseno, id, title, yearcaseno2, None)
 
     return
 
@@ -92,13 +92,14 @@ def process_year_from_mongo(year):
         print("skip: " + str(skip))
         case_list = []
 
-        for case in collection.find({"JYEAR": int(year)}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JCITATION": 1}).skip(skip).limit(limit):
+        for case in collection.find({"JYEAR": int(year)}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JTITLE": 1, "JCITATION": 1}).skip(skip).limit(limit):
             if 'JCITATION' in case:
                 case_list.append(case)
 
         for case in case_list:
             id = case['_id']
             type = case['JTYPE']
+            title = case['JTITLE']
             jcase = case['JCASE'].replace('臺', '台')
             yearcaseno = str(case['JYEAR']) + jcase + str(case['JNO'])
             citations = case['JCITATION']
@@ -109,7 +110,7 @@ def process_year_from_mongo(year):
                     jyear = match.group(1)
                     jcase = match.group(2)
                     jno = match.group(3)
-                    find_refer_case_and_add_to_graph(yearcaseno, id, type, jyear, jcase, jno)
+                    find_refer_case_and_add_to_graph(yearcaseno, id, type, title, jyear, jcase, jno)
 
         skip += limit
 
