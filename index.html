@@ -4,85 +4,83 @@
         <title>理狗駭：法律引用網絡分析</title>
         <meta charset="UTF-8">
         <style type="text/css">
-            html, body {
-                font: 16pt arial;
-            }
-
-            #viz {
-                width: 900px;
-                height: 700px;
-                border: 1px solid lightgray;
-                font: 22pt arial;
-            }
-
-            .section {
-                margin: 15px;
-                font-size: 20px;
-            }
-
-            label {
-                font-size: 18px;
-            }
-        </style>
+        <link rel="stylesheet" href="header.css">
+        <link rel="stylesheet" href="common.css">
     </head>
     <body>
-        <div style="display: inline-block; width: 200px;">
-            <div style="margin: 15px; font-size: 24px;">
-                節點數:<br/>
-                <span id="count_node"></span><br/>
-                引用數:<br/>
-                <span id="count_relation"></span>
-            </div>
-            <div style="margin-top: 15px;">
-                <div class="section">
-                    案號<br/>
-                    <input type="text" id="yearcaseno" name="yearcaseno" size="12" placeholder="105訴123"/><button id="clear">清空</button>
-                </div>
-                <div class="section">
-                    數量<br/>
-                    <label for="limit_all">全部</label>
-                    <input type="radio" name="limit" id="limit_all" value="all"><br/>
-                    <label for="limit_5000">5000</label>
-                    <input type="radio" name="limit" id="limit_5000" value="5000"><br/>
-                    <label for="limit_3000">3000</label>
-                    <input type="radio" name="limit" id="limit_3000" value="3000"><br/>
-                    <label for="limit_1000">1000</label>
-                    <input type="radio" name="limit" id="limit_1000" value="1000" checked><br/>
-                    <label for="limit_500">500</label>
-                    <input type="radio" name="limit" id="limit_500" value="500">
-                </div>
-                <div class="section">
-                    PageRank<br/>
-                    <label for="pagerank_15">大於 0.15</label>
-                    <input type="radio" name="pagerank" id="pagerank_15" value="0.15"><br/>
-                    <label for="pagerank_18">大於 0.18</label>
-                    <input type="radio" name="pagerank" id="pagerank_18" value="0.18" checked><br/>
-                    <label for="pagerank_21">大於 0.21</label>
-                    <input type="radio" name="pagerank" id="pagerank_21" value="0.21"><br/>
-                    <label for="pagerank_50">大於 0.5</label>
-                    <input type="radio" name="pagerank" id="pagerank_50" value="0.5">
-                </div>
-                <div class="section">
-                    <label><input type="checkbox" id="arrows" checked>顯示方向</label>
-                </div>
-                <div style="margin: 10px;">
-                    <button id="apply">套用</button>
-                </div>
+        <div class="header">
+            <a href="#default" class="logo"><img src="logo.png" alt="LegalHack" style="height: 60px;"></a>
+            <div class="header-right">
+                <a class="active" href="#home">Home</a>
+                <a href="#contact">Contact</a>
             </div>
         </div>
-        <div id="viz" style="display: inline-block;"></div>
+        <div class="content">
+            <div class="filter">
+                <div style="margin: 15px; font-size: 24px;">
+                    判決數:<br/>
+                    <span class="statistics">1,1902,683</span><br/>
+                    判決年度:<br/>
+                    <span class="statistics">1996 - 2019</span><br/>
+                    節點數:<br/>
+                    <span id="count_node" class="statistics">-</span><br/>
+                    引用數:<br/>
+                    <span id="count_relation" class="statistics">-</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <div class="section">
+                        案號<br/>
+                        <input type="text" id="yearcaseno" name="yearcaseno" size="12" placeholder="105訴123"/><button id="clear_yearcaseno">清空</button><br/>
+                        案由<br/>
+                        <input type="text" id="title" name="title" size="12" placeholder="損害賠償"/><button id="clear_title">清空</button>
+                    </div>
+                    <div class="section">
+                        顯示數量<br/>
+                        <select name="limit">
+                            <option value="10000">10000</option>
+                            <option value="5000">5000</option>
+                            <option value="3000">3000</option>
+                            <option value="1000" selected>1000</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                    <div class="section">
+                        重要程度<br/>
+                        <select name="pagerank">
+                            <option value="0.5">最重要</option>
+                            <option value="0.24">重要</option>
+                            <option value="0.21">普通</option>
+                            <option value="0.18">不重要</option>
+                            <option value="0.15">最重要</option>
+                        </select>
+                    </div>
+                    <div class="section">
+                        <label><input type="checkbox" id="arrows" checked>顯示方向</label>
+                    </div>
+                    <div style="margin: 10px;">
+                        <button id="apply">套用</button>
+                    </div>
+                </div>
+            </div>
+            <div id="viz"></div>
+        </div>
 
         <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
         <script type="text/javascript">
         var viz;
         var showArrows = true;
+        var neo4jHost = 'localhost';
+        var neo4jPassword = 'neo4j';
+        // var neo4jHost = '13.113.158.197';
+        // var neo4jPassword = 'aDeRTYlenTor';
+
         var config = {
             container_id: "viz",
-            server_url: "bolt://13.113.158.197:7687",
+            server_url: "bolt://" + neo4jHost + ":7687",
             server_user: "neo4j",
-            server_password: "aDeRTYlenTor",
+            server_password: neo4jPassword,
             labels: {
                 "CASE": {
                     "caption": "yearcaseno",
@@ -99,7 +97,7 @@
             },
             initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000",
             arrows: showArrows,
-            console_debug: true
+            console_debug: false
         };
 
         function draw() {
@@ -107,29 +105,48 @@
             viz.render();
         }
 
+        function enableCondition(enabled) {
+            $("select[name=limit]").attr('disabled', !enabled);
+            $("select[name=pagerank]").attr('disabled', !enabled);
+        }
+
         $("#yearcaseno").bind("keyup change", function(e) {
             if ($("#yearcaseno").val() != "") {
-                $("input[name=limit]").attr('disabled', true);
-                $("input[name=pagerank]").attr('disabled', true);
+                enableCondition(false);
+                $("#title").val("");
             } else {
-                $("input[name=limit]").attr('disabled', false);
-                $("input[name=pagerank]").attr('disabled', false);
+                enableCondition(true);
             }
         });
 
-        $("#clear").click(function() {
+        $("#title").bind("keyup change", function(e) {
+            if ($("#title").val() != "") {
+                $("#yearcaseno").val("");
+                enableCondition(true);
+            }
+        });
+
+        $("#clear_yearcaseno").click(function() {
             $("#yearcaseno").val("");
+        });
+        $("#clear_title").click(function() {
+            $("#clear_title").val("");
         });
 
         $("#apply").click(function() {
-            var limit = $("input[name=limit]:checked").val();
-            var pagerank = $("input[name=pagerank]:checked").val();
+            var limit = $("select[name=limit]").val();
+            var pagerank = $("select[name=pagerank]").val();
             var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000";
             if ($("#yearcaseno").val() != "") {
                 var yearcaseno = $("#yearcaseno").val();
                 cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + yearcaseno + "' RETURN *";
             } else {
-                cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, n.pagerank LIMIT " + limit;
+                cypher = "";
+                if ($("#title").val() != "") {
+                    var title = $("#title").val();
+                    cypher = "CALL db.index.fulltext.queryNodes(\"title\", \"" + title + "\") YIELD node ";
+                }
+                cypher += "MATCH (node)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + limit;
             }
             console.log(cypher);
             if ($("#arrows").is(":checked") != showArrows) {
@@ -147,9 +164,13 @@
             draw();
             $.get("rest/count_node", function(data) {
                 $("#count_node").text(numeral(data.count).format('0,0'));
+            }).fail(function() {
+                $("#count_node").text('0');
             });
             $.get("rest/count_relation", function(data) {
                 $("#count_relation").text(numeral(data.count).format('0,0'));
+            }).fail(function() {
+                $("#count_relation").text('0');
             });
         });
     </script>
