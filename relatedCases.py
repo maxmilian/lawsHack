@@ -22,7 +22,6 @@ def get_mongo_collection():
 
 def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
     graph = Graph("http://localhost:7474/db/data/", password=NEO4J_PASSWORD)
-    # graph.delete_all()
 
     if id1 is not None:
         node_1 = Node("CASE", yearcaseno=yearcaseno1, id=id1)
@@ -36,8 +35,8 @@ def add_to_graph(yearcaseno1, id1, yearcaseno2, id2):
     rel = Relationship(node_1, "REFER", node_2)
 
     tx = graph.begin()
-    tx.merge(node_1, primary_label='Case', primary_key='yearcaseno')
-    tx.merge(node_2, primary_label='Case', primary_key='yearcaseno')
+    tx.merge(node_1, primary_label='CASE', primary_key='yearcaseno')
+    tx.merge(node_2, primary_label='CASE', primary_key='yearcaseno')
     tx.merge(rel)
     tx.commit()
 
@@ -82,18 +81,20 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, year, jcase, no):
 
 def process_year_from_mongo(year):
     collection = get_mongo_collection()
-    count = collection.count({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]})
-    skip = 0
-    limit = 1000
+    count = collection.count({"JYEAR": int(year)})
 
-    print('process_year_from_mongo: ' + str(year))
+    skip = 0
+    limit = 3000
+
+    print('process_year_from_mongo: ' + str(year) + ", count: " + str(count))
 
     while (skip < count):
         print("skip: " + str(skip))
         case_list = []
 
-        for case in collection.find({"$and":[{"JYEAR": int(year)}, {"JCITATION": {"$exists": True}}]}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JCITATION": 1}).skip(skip).limit(limit):
-            case_list.append(case)
+        for case in collection.find({"JYEAR": int(year)}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JCITATION": 1}).skip(skip).limit(limit):
+            if 'JCITATION' in case:
+                case_list.append(case)
 
         for case in case_list:
             id = case['_id']
@@ -109,7 +110,6 @@ def process_year_from_mongo(year):
                     jcase = match.group(2)
                     jno = match.group(3)
                     find_refer_case_and_add_to_graph(yearcaseno, id, type, jyear, jcase, jno)
-
 
         skip += limit
 

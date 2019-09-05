@@ -1,6 +1,3 @@
-MATCH (n) DETACH DELETE n
-
-MATCH (n) RETURN n
 
 # neo4j
 [neo4j瀏覽器](http://13.113.158.197:7474/browser/)
@@ -9,6 +6,16 @@ bolt://13.113.158.197:7687
 帳號: neo4j
 密碼：aDeRTYlenTor
 
+```sh
+# 登出
+:server disconnect
+
+# 查詢節點
+MATCH (n) RETURN n
+
+# 刪除所有節點與關聯
+MATCH (n) DETACH DELETE n
+```
 
 # 解析
 
@@ -26,6 +33,8 @@ nohup python3 -u citation.py 4 3 > citation_4_3.log &
 nohup python3 -u citation.py 4 4 > citation_4_4.log &
 
 # import 至 neo4j
+nohup python3 -u relatedCases.py > relatedCases.log &
+
 nohup python3 -u relatedCases.py 8 1 > relatedCases_8_1.log &
 nohup python3 -u relatedCases.py 8 2 > relatedCases_8_2.log &
 nohup python3 -u relatedCases.py 8 3 > relatedCases_8_3.log &
@@ -40,6 +49,9 @@ nohup python3 -u relatedCases.py 8 8 > relatedCases_8_8.log &
 
 ```sh
 CALL db.index.fulltext.createNodeIndex("title", ["CASE"], ["title"])
+
+CALL db.index.fulltext.queryNodes("title", "'殺人'") YIELD node, score
+RETURN node.title, score
 ```
 
 # Property
@@ -48,6 +60,8 @@ CALL db.index.fulltext.createNodeIndex("title", ["CASE"], ["title"])
 
 ```sh
 CALL algo.labelPropagation('CASE', 'REFER', 'OUTGOING', {write: true, partitionProperty: "community", weightProperty: "count"})
+
 CALL algo.pageRank('CASE', 'REFER', {write: true, writeProperty:"pagerank"})
+
 CALL algo.betweenness('CASE','REFER', {direction:'out',write:true, writeProperty:'betweenness'})
 ```

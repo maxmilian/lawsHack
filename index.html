@@ -14,45 +14,60 @@
                 border: 1px solid lightgray;
                 font: 22pt arial;
             }
+
+            .section {
+                margin: 15px;
+                font-size: 20px;
+            }
+
+            label {
+                font-size: 18px;
+            }
         </style>
     </head>
     <body>
         <div style="display: inline-block; width: 200px;">
             <div style="margin: 15px; font-size: 24px;">
-                <lable>節點數:</label><br/>
+                節點數:<br/>
                 <span id="count_node"></span><br/>
-                <lable>引用數:</label><br/>
+                引用數:<br/>
                 <span id="count_relation"></span>
             </div>
-            <div style="margin: 15px; font-size: 20px;">
-                <lable>數量</label><br/>
-                <label for="limit_all">全部</label>
-                <input type="radio" name="limit" id="limit_all" value="all"><br/>
-                <label for="limit_5000">5000</label>
-                <input type="radio" name="limit" id="limit_5000" value="5000"><br/>
-                <label for="limit_3000">3000</label>
-                <input type="radio" name="limit" id="limit_3000" value="3000"><br/>
-                <label for="limit_1000">1000</label>
-                <input type="radio" name="limit" id="limit_1000" value="1000" checked><br/>
-                <label for="limit_500">500</label>
-                <input type="radio" name="limit" id="limit_500" value="500">
-            </div>
-            <div style="margin: 15px; font-size: 20px;">
-                <lable>PageRank</label><br/>
-                <label for="pagerank_15">大於 0.15</label>
-                <input type="radio" name="pagerank" id="pagerank_15" value="0.15"><br/>
-                <label for="pagerank_18">大於 0.18</label>
-                <input type="radio" name="pagerank" id="pagerank_18" value="0.18" checked><br/>
-                <label for="pagerank_21">大於 0.21</label>
-                <input type="radio" name="pagerank" id="pagerank_21" value="0.21"><br/>
-                <label for="pagerank_50">大於 0.5</label>
-                <input type="radio" name="pagerank" id="pagerank_50" value="0.5">
-            </div>
-            <div style="margin: 15px; font-size: 20px;">
-                <label><input type="checkbox" id="arrows" checked>顯示方向</label>
-            </div>
-            <div style="margin: 10px;">
-                <button>套用</button>
+            <div style="margin-top: 15px;">
+                <div class="section">
+                    案號<br/>
+                    <input type="text" id="yearcaseno" name="yearcaseno" size="12" placeholder="105訴123"/><button id="clear">清空</button>
+                </div>
+                <div class="section">
+                    數量<br/>
+                    <label for="limit_all">全部</label>
+                    <input type="radio" name="limit" id="limit_all" value="all"><br/>
+                    <label for="limit_5000">5000</label>
+                    <input type="radio" name="limit" id="limit_5000" value="5000"><br/>
+                    <label for="limit_3000">3000</label>
+                    <input type="radio" name="limit" id="limit_3000" value="3000"><br/>
+                    <label for="limit_1000">1000</label>
+                    <input type="radio" name="limit" id="limit_1000" value="1000" checked><br/>
+                    <label for="limit_500">500</label>
+                    <input type="radio" name="limit" id="limit_500" value="500">
+                </div>
+                <div class="section">
+                    PageRank<br/>
+                    <label for="pagerank_15">大於 0.15</label>
+                    <input type="radio" name="pagerank" id="pagerank_15" value="0.15"><br/>
+                    <label for="pagerank_18">大於 0.18</label>
+                    <input type="radio" name="pagerank" id="pagerank_18" value="0.18" checked><br/>
+                    <label for="pagerank_21">大於 0.21</label>
+                    <input type="radio" name="pagerank" id="pagerank_21" value="0.21"><br/>
+                    <label for="pagerank_50">大於 0.5</label>
+                    <input type="radio" name="pagerank" id="pagerank_50" value="0.5">
+                </div>
+                <div class="section">
+                    <label><input type="checkbox" id="arrows" checked>顯示方向</label>
+                </div>
+                <div style="margin: 10px;">
+                    <button id="apply">套用</button>
+                </div>
             </div>
         </div>
         <div id="viz" style="display: inline-block;"></div>
@@ -92,10 +107,31 @@
             viz.render();
         }
 
-        $("button").click(function() {
+        $("#yearcaseno").bind("keyup change", function(e) {
+            if ($("#yearcaseno").val() != "") {
+                $("input[name=limit]").attr('disabled', true);
+                $("input[name=pagerank]").attr('disabled', true);
+            } else {
+                $("input[name=limit]").attr('disabled', false);
+                $("input[name=pagerank]").attr('disabled', false);
+            }
+        });
+
+        $("#clear").click(function() {
+            $("#yearcaseno").val("");
+        });
+
+        $("#apply").click(function() {
             var limit = $("input[name=limit]:checked").val();
             var pagerank = $("input[name=pagerank]:checked").val();
-            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, n.pagerank LIMIT " + limit;
+            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.15 RETURN * ORDER BY m.pagerank LIMIT 1000";
+            if ($("#yearcaseno").val() != "") {
+                var yearcaseno = $("#yearcaseno").val();
+                cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + yearcaseno + "' RETURN *";
+            } else {
+                cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, n.pagerank LIMIT " + limit;
+            }
+            console.log(cypher);
             if ($("#arrows").is(":checked") != showArrows) {
                 config.arrows = $("#arrows").is(":checked");
                 config.initial_cypher = cypher;
