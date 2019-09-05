@@ -3,7 +3,6 @@
     <head>
         <title>理狗駭：法律引用網絡分析</title>
         <meta charset="UTF-8">
-        <style type="text/css">
         <link rel="stylesheet" href="header.css">
         <link rel="stylesheet" href="common.css">
     </head>
@@ -30,9 +29,9 @@
                 <div style="margin-top: 15px;">
                     <div class="section">
                         案號<br/>
-                        <input type="text" id="yearcaseno" name="yearcaseno" size="12" placeholder="105訴123"/><button id="clear_yearcaseno">清空</button><br/>
+                        <input type="search" id="yearcaseno" name="yearcaseno" placeholder="105訴123"/><br/>
                         案由<br/>
-                        <input type="text" id="title" name="title" size="12" placeholder="損害賠償"/><button id="clear_title">清空</button>
+                        <input type="search" id="title" name="title" placeholder="損害賠償"/>
                     </div>
                     <div class="section">
                         顯示數量<br/>
@@ -124,13 +123,6 @@
                 $("#yearcaseno").val("");
                 enableCondition(true);
             }
-        });
-
-        $("#clear_yearcaseno").click(function() {
-            $("#yearcaseno").val("");
-        });
-        $("#clear_title").click(function() {
-            $("#clear_title").val("");
         });
 
         $("#apply").click(function() {
