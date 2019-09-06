@@ -67,6 +67,8 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, title, year, jcase, n
 
     yearcaseno2 = str(year) + jcase + str(no)
     print(yearcaseno2)
+
+    # find_refer_case is too slow, skip it
     # case2 = find_refer_case(year, jcase, no, type)
     case2 = None
 

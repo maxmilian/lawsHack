@@ -3,8 +3,9 @@
     <head>
         <title>理狗駭：法律引用網絡分析</title>
         <meta charset="UTF-8">
-        <link rel="stylesheet" href="header.css">
-        <link rel="stylesheet" href="common.css">
+        <link rel="stylesheet" href="css/header.css">
+        <link rel="stylesheet" href="css/common.css">
+        <link rel="stylesheet" href="https://cdn.rawgit.com/needim/noty/77268c46/lib/noty.css">
     </head>
     <body>
         <div class="header">
@@ -67,49 +68,10 @@
         <script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
-        <script src="jquery.loading.min.js"></script>
+        <script src="https://cdn.rawgit.com/needim/noty/77268c46/lib/noty.min.js"></script>
+        <script src="https://unpkg.com/jquery-easy-loading/dist/jquery.loading.min.js"></script>
+        <script src="js/neovis.js"></script>
         <script type="text/javascript">
-        var viz;
-        var showArrows = true;
-        var neo4jHost = 'localhost';
-        var neo4jPassword = 'neo4j';
-        // var neo4jHost = '13.113.158.197';
-        // var neo4jPassword = 'aDeRTYlenTor';
-
-        var config = {
-            container_id: "viz",
-            server_url: "bolt://" + neo4jHost + ":7687",
-            server_user: "neo4j",
-            server_password: neo4jPassword,
-            labels: {
-                "CASE": {
-                    "caption": "yearcaseno",
-                    "size": "pagerank",
-                    "community": "community",
-                    //"sizeCypher": "MATCH (n) WHERE id(n) = {id} MATCH (n)-[r]-() RETURN sum(r.weight) AS c"
-                }
-            },
-            relationships: {
-                "REFER": {
-                    "thickness": "weight",
-                    "caption": false
-                }
-            },
-            initial_cypher: "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000",
-            arrows: showArrows,
-            console_debug: false
-        };
-
-        function renderCompleted(stats) {
-            console.log("Completed with", stats.record_count, "records");
-            $('#viz').loading('stop');
-        }
-
-        function draw() {
-            viz = new NeoVis.default(config);
-            viz.registerOnEvent('completed', renderCompleted);
-            viz.render();
-        }
 
         function enableCondition(enabled) {
             $("select[name=limit]").attr('disabled', !enabled);
@@ -132,34 +94,66 @@
             }
         });
 
-        $("#apply").click(function() {
-            var limit = $("select[name=limit]").val();
-            var pagerank = $("select[name=pagerank]").val();
-            var cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
-            if ($("#yearcaseno").val() != "") {
-                var yearcaseno = $("#yearcaseno").val();
+        function resetNeovisConfig() {
+            let searchParams = new URLSearchParams(window.location.search);
+
+            let limit = searchParams.get('limit');
+            let pagerank = searchParams.get('pagerank');
+            let cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
+            let yearcaseno = searchParams.get('yearcaseno');
+            let title = searchParams.get('title');
+            let arrows = searchParams.get('arrows') == "true" ? true : false;
+
+            if (yearcaseno != "") {
                 cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + yearcaseno + "' RETURN *";
             } else {
+                let title = searchParams.get('title');
+
                 cypher = "";
-                if ($("#title").val() != "") {
-                    var title = $("#title").val();
+                if (title != "") {
                     cypher = "CALL db.index.fulltext.queryNodes(\"title\", \"" + title + "\") YIELD node ";
                 }
                 cypher += "MATCH (node)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + limit;
             }
             console.log(cypher);
-            if ($("#arrows").is(":checked") != showArrows) {
-                config.arrows = $("#arrows").is(":checked");
-                config.initial_cypher = cypher;
+            if (arrows != showArrows) {
+                neovisConfig.arrows = arrows;
+                neovisConfig.initial_cypher = cypher;
                 $("#viz").loading();
-                viz.reinit(config);
+                viz.reinit(neovisConfig);
 
-                showArrows = $("#arrows").is(":checked");
+                showArrows = arrows;
             } else {
                 $("#viz").loading();
                 viz.renderWithCypher(cypher);
             }
+        }
+
+        $("#apply").click(function() {
+            var params = {
+                limit: $("select[name=limit]").val(),
+                pagerank: $("select[name=pagerank]").val(),
+                yearcaseno: $("#yearcaseno").val(),
+                title: $("#title").val(),
+                arrows: $("#arrows").is(":checked"),
+            };
+
+            var url = window.location.pathname + "?" + jQuery.param(params);
+            history.pushState({}, null, url);
+
+            resetNeovisConfig();
         });
+
+        function initConfig() {
+            let searchParams = new URLSearchParams(window.location.search);
+
+            let limit = searchParams.get('limit');
+            let pagerank = searchParams.get('pagerank');
+            let cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
+            let yearcaseno = searchParams.get('yearcaseno');
+            let title = searchParams.get('title');
+            let arrows = searchParams.get('arrows') == "true" ? true : false;
+        }
 
         $(document).ready(function() {
             $.get("rest/count_case", function(data) {
