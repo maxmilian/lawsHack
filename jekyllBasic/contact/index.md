@@ -3,27 +3,19 @@ layout: template1
 comments: false
 ---
 
-### 有任何建議或合作，請使用此表單聯繫我們:)
+<h3>有任何建議或合作，請使用此表單聯繫我們:)</h3>
 
-<form id="contactform" method="post" action="https://formspree.io/maxmilian@gmail.com">
+<form action=" https://formsubmit.co/maxmilian@gmail.com " method="POST">
     <div class="form-group">
-        <label for="name" class="control-label">Your name</label>
+        <h4>Your name</h4>
         <input id="name" type="text" name="name" class="form-control" placeholder="王大明" />
     </div>
     <div class="form-group">
-        <label for="email" class="control-label">Your email</label>
+        <h4>Your email</h4>
         <input id="email" type="email" name="_replyto" class="form-control" placeholder="hi@gmail.com" />
     </div>
     <div class="form-group">
-        <label for="msg" class="control-label">Your message</label>
-        <textarea id="msg" name="message" class="form-control" placeholder="建議..."></textarea>
+        <textarea placeholder="建議或合作..." class="form-control" name="message" rows="14" required></textarea>
     </div>
-
-    <input type="text" name="_gotcha" style="display:none" />
     <input type="submit" value="送出!" class="btn btn-primary" />
 </form>
-
-<script>
-    var contactform =  document.getElementById('contactform');
-    contactform.setAttribute('action', '//formspree.io/' + 'bchetty' + '@' + 'somemail' + '.' + 'com');
-</script>
