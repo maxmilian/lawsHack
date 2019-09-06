@@ -17,7 +17,7 @@ baseurl: ""
 title: 理狗駭：法律引用網絡分析
 
 #Default keywords (used if no keywords are specified on a page basis)
-keywords: test1, test2, etc
+keywords: 法律科技, 引用網絡, 法律黑客松
 
 # Short description of your site
 desc: 法律引用網絡分析：以台灣法院判決為例
@@ -38,7 +38,7 @@ nav-links:
 
 # If the values are empty, they are ignored
 profile:
-  name: Babji Chetty
+  name: Max Hsu
   email: maxmilian@gmail.com
   facebook: your-fb-id
   github: your-github-id
@@ -65,7 +65,6 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
 permalink: /blog/:title
-paginate: 5
 
 # Default YAML values (more information on Jekyll's site)
 defaults:
@@ -86,9 +85,6 @@ defaults:
 exclude:
   - Gemfile
   - Gemfile.lock
-  - LICENSE
-  - README.md
-  - CNAME
 
 created-by: Max Hsu
 creator-url: http://legalhack.tech

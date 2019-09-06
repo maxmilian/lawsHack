@@ -10,6 +10,13 @@ html, body {
     display: inline-block;
 }
 
+@media (max-width: 768px) {
+    #viz {
+        width: 600px;
+        height: 466px;
+    }
+}
+
 .filter {
     display: inline-block;
     width: 200px;

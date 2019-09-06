@@ -69,3 +69,15 @@ CALL algo.pageRank('CASE', 'REFER', {write: true, writeProperty:"pagerank"})
 
 CALL algo.betweenness('CASE','REFER', {direction:'out',write:true, writeProperty:'betweenness'})
 ```
+
+# 版型
+
+使用 [jekyllBasic](https://github.com/bchetty/jekyllBasic) 版型，
+
+```sh
+# 開發
+bundle exec jekyll serve
+
+# 編譯
+bundle exec jekyll build
+```
