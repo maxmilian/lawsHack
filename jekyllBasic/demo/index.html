@@ -1,0 +1,177 @@
+---
+layout: template1
+title: Demo
+comments: false
+---
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/header.css">
+<link rel="stylesheet" href="{{ site.baseurl }}/assets/css/common.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/needim/noty/77268c46/lib/noty.css">
+
+<div class="container">
+  <!-- Example row of columns -->
+  <div class="row">
+    <div class="col-md-2 filter">
+        <div style="margin: 15px; font-size: 24px;">
+            判決數:<br/>
+            <span id="count_case" class="statistics">-</span><br/>
+            判決年度:<br/>
+            <span class="statistics">1996 - 2019</span><br/>
+            節點數:<br/>
+            <span id="count_node" class="statistics">-</span><br/>
+            引用數:<br/>
+            <span id="count_relation" class="statistics">-</span>
+        </div>
+        <div style="margin-top: 15px;">
+            <div class="section">
+                案號<br/>
+                <input type="search" id="yearcaseno" name="yearcaseno" size="16" placeholder="105訴123"/><br/>
+                案由<br/>
+                <input type="search" id="title" name="title" size="16"  placeholder="損害賠償"/>
+            </div>
+            <div class="section">
+                顯示數量<br/>
+                <select name="limit">
+                    <option value="10000">10000</option>
+                    <option value="5000">5000</option>
+                    <option value="3000">3000</option>
+                    <option value="1000" selected>1000</option>
+                    <option value="500">500</option>
+                </select>
+            </div>
+            <div class="section">
+                重要程度<br/>
+                <select name="pagerank">
+                    <option value="0.5">最重要</option>
+                    <option value="0.24">重要</option>
+                    <option value="0.21" selected>普通</option>
+                    <option value="0.18">不重要</option>
+                    <option value="0.15">最不重要</option>
+                </select>
+            </div>
+            <div class="section">
+                <label><input type="checkbox" id="arrows" checked>顯示方向</label>
+            </div>
+            <div style="margin: 10px;">
+                <button id="apply">套用</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viz" class="col-md-10"></div>
+  </div>
+</div>
+
+<script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+<script src="https://cdn.rawgit.com/needim/noty/77268c46/lib/noty.min.js"></script>
+<script src="https://unpkg.com/jquery-easy-loading/dist/jquery.loading.min.js"></script>
+<script src="{{ site.baseurl }}/assets/js/neovis.js"></script>
+<script type="text/javascript">
+
+function enableCondition(enabled) {
+    $("select[name=limit]").attr('disabled', !enabled);
+    $("select[name=pagerank]").attr('disabled', !enabled);
+}
+
+$("#yearcaseno").bind("keyup change", function(e) {
+    if ($("#yearcaseno").val() != "") {
+        enableCondition(false);
+        $("#title").val("");
+    } else {
+        enableCondition(true);
+    }
+});
+
+$("#title").bind("keyup change", function(e) {
+    if ($("#title").val() != "") {
+        $("#yearcaseno").val("");
+        enableCondition(true);
+    }
+});
+
+function draw() {
+    if ($("input[name=yearcaseno]").val() != "") {
+        cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + $("input[name=yearcaseno]").val() + "' RETURN *";
+    } else {
+        cypher = "";
+        if ($("input[name=title]").val() != "") {
+            cypher = "CALL db.index.fulltext.queryNodes(\"title\", \"" + $("input[name=title]").val() + "\") YIELD node MATCH (node)-[r:REFER]->(m) RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + $("select[name=limit]").val();
+        } else {
+            cypher = "MATCH (node)-[r:REFER]->(m) WHERE m.pagerank > " + $("select[name=pagerank]").val() + " RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + $("select[name=limit]").val();
+        }
+    }
+    console.log(cypher);
+    // $("#viz").loading();
+
+    neovisConfig.arrows = $("#arrows").is(":checked");
+    neovisConfig.initial_cypher = cypher;
+
+    if (viz == null) {
+        initNeoVis(neovisConfig);
+    } else {
+        viz.reinit(neovisConfig);
+    }
+
+    showArrows = arrows;
+}
+
+$("#apply").click(function() {
+    var params = {
+        limit: $("select[name=limit]").val(),
+        pagerank: $("select[name=pagerank]").val(),
+        yearcaseno: $("#yearcaseno").val(),
+        title: $("#title").val(),
+        arrows: $("#arrows").is(":checked"),
+    };
+
+    var url = window.location.pathname + "?" + jQuery.param(params);
+    history.pushState({}, null, url);
+
+    draw();
+});
+
+function parseUrlParameter() {
+    let searchParams = new URLSearchParams(window.location.search);
+
+    if (searchParams.get('limit')) {
+        $("select[name=limit]").val(searchParams.get('limit'));
+    }
+    if (searchParams.get('pagerank')) {
+        $("select[name=pagerank]").val(searchParams.get('pagerank'));
+    }
+
+    if (searchParams.get('yearcaseno')) {
+        $("input[name=yearcaseno]").val(searchParams.get('yearcaseno'));
+    }
+
+    if (searchParams.get('title')) {
+        $("input[name=title]").val(searchParams.get('title'));
+    }
+
+    if (searchParams.get('arrows')) {
+        $("#arrows").prop('checked', searchParams.get('arrows') == "true");
+    }
+}
+
+$(document).ready(function() {
+    $.get("/rest/count_case", function(data) {
+        $("#count_case").text(numeral(data.count).format('0,0'));
+    }).fail(function() {
+        $("#count_node").text('0');
+    });
+    $.get("/rest/count_node", function(data) {
+        $("#count_node").text(numeral(data.count).format('0,0'));
+    }).fail(function() {
+        $("#count_node").text('0');
+    });
+    $.get("/rest/count_relation", function(data) {
+        $("#count_relation").text(numeral(data.count).format('0,0'));
+    }).fail(function() {
+        $("#count_relation").text('0');
+    });
+
+    parseUrlParameter();
+    draw();
+});
+</script>
