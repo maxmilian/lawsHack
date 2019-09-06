@@ -94,39 +94,30 @@
             }
         });
 
-        function resetNeovisConfig() {
-            let searchParams = new URLSearchParams(window.location.search);
-
-            let limit = searchParams.get('limit');
-            let pagerank = searchParams.get('pagerank');
-            let cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
-            let yearcaseno = searchParams.get('yearcaseno');
-            let title = searchParams.get('title');
-            let arrows = searchParams.get('arrows') == "true" ? true : false;
-
-            if (yearcaseno != "") {
-                cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + yearcaseno + "' RETURN *";
+        function draw() {
+            if ($("input[name=yearcaseno]").val() != "") {
+                cypher = "MATCH (n)-[r:REFER*1..2]-(m) WHERE n.yearcaseno = '" + $("input[name=yearcaseno]").val() + "' RETURN *";
             } else {
-                let title = searchParams.get('title');
-
                 cypher = "";
-                if (title != "") {
-                    cypher = "CALL db.index.fulltext.queryNodes(\"title\", \"" + title + "\") YIELD node ";
+                if ($("input[name=title]").val() != "") {
+                    cypher = "CALL db.index.fulltext.queryNodes(\"title\", \"" + $("input[name=title]").val() + "\") YIELD node MATCH (node)-[r:REFER]->(m) RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + $("select[name=limit]").val();
+                } else {
+                    cypher = "MATCH (node)-[r:REFER]->(m) WHERE m.pagerank > " + $("select[name=pagerank]").val() + " RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + $("select[name=limit]").val();
                 }
-                cypher += "MATCH (node)-[r:REFER]->(m) WHERE m.pagerank > " + pagerank + " RETURN * ORDER BY m.pagerank, node.pagerank LIMIT " + limit;
             }
             console.log(cypher);
-            if (arrows != showArrows) {
-                neovisConfig.arrows = arrows;
-                neovisConfig.initial_cypher = cypher;
-                $("#viz").loading();
-                viz.reinit(neovisConfig);
+            $("#viz").loading();
 
-                showArrows = arrows;
+            neovisConfig.arrows = $("#arrows").is(":checked");
+            neovisConfig.initial_cypher = cypher;
+
+            if (viz == null) {
+                initNeoVis(neovisConfig);
             } else {
-                $("#viz").loading();
-                viz.renderWithCypher(cypher);
+                viz.reinit(neovisConfig);
             }
+
+            showArrows = arrows;
         }
 
         $("#apply").click(function() {
@@ -141,18 +132,30 @@
             var url = window.location.pathname + "?" + jQuery.param(params);
             history.pushState({}, null, url);
 
-            resetNeovisConfig();
+            draw();
         });
 
-        function initConfig() {
+        function parseUrlParameter() {
             let searchParams = new URLSearchParams(window.location.search);
 
-            let limit = searchParams.get('limit');
-            let pagerank = searchParams.get('pagerank');
-            let cypher = "MATCH (n)-[r:REFER]->(m) WHERE m.pagerank > 0.21 RETURN * ORDER BY m.pagerank LIMIT 1000";
-            let yearcaseno = searchParams.get('yearcaseno');
-            let title = searchParams.get('title');
-            let arrows = searchParams.get('arrows') == "true" ? true : false;
+            if (searchParams.get('limit')) {
+                $("select[name=limit]").val(searchParams.get('limit'));
+            }
+            if (searchParams.get('pagerank')) {
+                $("select[name=pagerank]").val(searchParams.get('pagerank'));
+            }
+
+            if (searchParams.get('yearcaseno')) {
+                $("input[name=yearcaseno]").val(searchParams.get('yearcaseno'));
+            }
+
+            if (searchParams.get('title')) {
+                $("input[name=title]").val(searchParams.get('title'));
+            }
+
+            if (searchParams.get('arrows')) {
+                $("#arrows").prop('checked', searchParams.get('arrows') == "true");
+            }
         }
 
         $(document).ready(function() {
@@ -171,7 +174,8 @@
             }).fail(function() {
                 $("#count_relation").text('0');
             });
-            $("#viz").loading();
+
+            parseUrlParameter();
             draw();
         });
     </script>

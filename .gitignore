@@ -3,3 +3,4 @@
 __pycache__
 *.ok.txt
 .DS_Store
+.ftpconfig

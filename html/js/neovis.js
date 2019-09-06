@@ -1,9 +1,9 @@
-var viz;
+var viz = null;
 var showArrows = true;
-var neo4jHost = 'localhost';
-var neo4jPassword = 'neo4j';
-// var neo4jHost = '13.113.158.197';
-// var neo4jPassword = 'aDeRTYlenTor';
+var debug = false;
+
+var neo4jHost = debug ? 'localhost' : 'legalhack.tech';
+var neo4jPassword = debug ? 'neo4j' : 'aDeRTYlenTor';
 
 var neovisConfig = {
     container_id: "viz",
@@ -39,8 +39,8 @@ function renderCompleted(stats) {
     $('#viz').loading('stop');
 }
 
-function draw() {
-    viz = new NeoVis.default(neovisConfig);
+function initNeoVis(config) {
+    viz = new NeoVis.default(config);
     viz.registerOnEvent('completed', renderCompleted);
     viz.render();
 }
