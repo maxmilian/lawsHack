@@ -14,13 +14,13 @@ enforce_ssl: ""
 baseurl: ""
 
 # Title of website
-title: LegalHack
+title: 理狗駭：法律引用網絡分析
 
 #Default keywords (used if no keywords are specified on a page basis)
 keywords: test1, test2, etc
 
 # Short description of your site
-desc: Sample Description
+desc: 法律引用網絡分析：以台灣法院判決為例
 
 # --- Navigation bar options --- #
 

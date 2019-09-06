@@ -36,7 +36,7 @@ function renderCompleted(stats) {
         timeout: 3000,
         theme: "relax"
     }).show();
-    // $('#viz').loading('stop');
+    $('#viz').loading('stop');
 }
 
 function initNeoVis(config) {

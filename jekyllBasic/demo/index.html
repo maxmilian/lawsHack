@@ -22,15 +22,19 @@ comments: false
             <span id="count_relation" class="statistics">-</span>
         </div>
         <div style="margin-top: 15px;">
-            <div class="section">
-                案號<br/>
-                <input type="search" id="yearcaseno" name="yearcaseno" size="16" placeholder="105訴123"/><br/>
-                案由<br/>
-                <input type="search" id="title" name="title" size="16"  placeholder="損害賠償"/>
+            <div class="section form-group">
+                <label for="yearcaseno">案號:</label>
+                <input type="search" id="yearcaseno" name="yearcaseno" class="form-control" placeholder="105訴123" />
             </div>
-            <div class="section">
-                顯示數量<br/>
-                <select name="limit">
+
+            <div class="section form-group">
+                <label for="title">案由:</label>
+                <input type="search" id="title" name="title" class="form-control" placeholder="損害賠償"/>
+            </div>
+
+            <div class="section form-group">
+                <label for="pagerank">顯示數量:</label>
+                <select id="limit" name="limit" class="form-control">
                     <option value="10000">10000</option>
                     <option value="5000">5000</option>
                     <option value="3000">3000</option>
@@ -38,9 +42,9 @@ comments: false
                     <option value="500">500</option>
                 </select>
             </div>
-            <div class="section">
-                重要程度<br/>
-                <select name="pagerank">
+            <div class="section form-group">
+                <label for="pagerank">重要程度:</label>
+                <select id="pagerank" name="pagerank" class="form-control">
                     <option value="0.5">最重要</option>
                     <option value="0.24">重要</option>
                     <option value="0.21" selected>普通</option>
@@ -48,11 +52,11 @@ comments: false
                     <option value="0.15">最不重要</option>
                 </select>
             </div>
-            <div class="section">
+            <div class="section checkbox">
                 <label><input type="checkbox" id="arrows" checked>顯示方向</label>
             </div>
             <div style="margin: 10px;">
-                <button id="apply">套用</button>
+                <button id="apply" type="button" class="btn btn-lg btn-primary">套用</button>
             </div>
         </div>
     </div>
@@ -60,12 +64,7 @@ comments: false
     <div id="viz" class="col-md-10"></div>
   </div>
 </div>
-
-<script src="https://rawgit.com/neo4j-contrib/neovis.js/master/dist/neovis.js"></script>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
-<script src="https://cdn.rawgit.com/needim/noty/77268c46/lib/noty.min.js"></script>
-<script src="https://unpkg.com/jquery-easy-loading/dist/jquery.loading.min.js"></script>
 <script src="{{ site.baseurl }}/assets/js/neovis.js"></script>
 <script type="text/javascript">
 
@@ -102,7 +101,7 @@ function draw() {
         }
     }
     console.log(cypher);
-    // $("#viz").loading();
+    $("#viz").loading();
 
     neovisConfig.arrows = $("#arrows").is(":checked");
     neovisConfig.initial_cypher = cypher;
