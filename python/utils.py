@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
+COURT_FILENAME = '../files/courts.txt'
+
 def convert_chinese_num_to_en_num(string):
     i = 0
     current = 0
@@ -105,3 +107,38 @@ def process_mongo_year(todo_file, done_file, processor):
         with open(done_file, 'a+') as f:
             f.write(year + "\n")
             f.close()
+
+def process_mongo_year_court(todo_file, done_file, processor):
+    todo_list = load_files(todo_file)
+    if len(todo_list) <= 0:
+        print(todo_file + ' is not exits or empty')
+        exit()
+
+    print('todo: ')
+    print(todo_list)
+
+    court_todo_list = load_files(COURT_FILENAME)
+    if len(court_todo_list) <= 0:
+        print(COURT_FILENAME + ' is not exits or empty')
+        exit()
+
+    done_list = load_files(done_file)
+    if len(todo_list) <= 0:
+        f = open(done_file, "w")
+        f.close()
+
+    print('done: ')
+    print(done_list)
+
+    for year in todo_list:
+        for court in court_todo_list:
+            key = year + "," + court
+            if key in done_list:
+                print(key + ' is done')
+                continue
+
+            processor(year, court)
+
+            with open(done_file, 'a+') as f:
+                f.write(key + "\n")
+                f.close()

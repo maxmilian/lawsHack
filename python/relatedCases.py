@@ -4,10 +4,10 @@ import re
 from py2neo import Graph,Node,Relationship
 from pymongo import MongoClient
 from utils import convert_chinese_num_to_en_num
-from utils import process_mongo_year
+from utils import process_mongo_year_court
 
-FILENAME = './files/years.txt'
-FILENAME_OK = 'years_relatedCases.ok.txt'
+FILENAME = '../files/years.txt'
+FILENAME_OK = 'years_court_relatedCases.ok.txt'
 RE_CITAION = r"([○００一二三四五六七八九十0123456789]+)年度?(\S{1,3})字第([○００一二三四五六七八九十0123456789]+)號"
 
 # MONGO_HOST = '13.113.158.197:37017'
@@ -81,20 +81,25 @@ def find_refer_case_and_add_to_graph(yearcaseno, id, type, title, year, jcase, n
 
     return
 
-def process_year_from_mongo(year):
+def process_year_court_from_mongo(year, court):
     collection = get_mongo_collection()
-    count = collection.count({"JYEAR": int(year)})
+    query = {"JYEAR": int(year), "JCOURT": court}
+    columns = {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JTITLE": 1, "JCITATION": 1}
+
+    count = collection.count(query)
+    if count <= 0:
+        return
 
     skip = 0
     limit = 3000
 
-    print('process_year_from_mongo: ' + str(year) + ", count: " + str(count))
+    print("process_year_court_from_mongo: " + str(year) + ", court: " + court + ", count: " + str(count))
 
     while (skip < count):
         print("skip: " + str(skip))
         case_list = []
 
-        for case in collection.find({"JYEAR": int(year)}, {"_id": 1, "JTYPE": 1, "JYEAR": 1, "JCASE": 1, "JNO": 1, "JTITLE": 1, "JCITATION": 1}).skip(skip).limit(limit):
+        for case in collection.find(query, columns).skip(skip).limit(limit):
             if 'JCITATION' in case:
                 case_list.append(case)
 
@@ -129,6 +134,6 @@ if __name__== "__main__":
         print("split: " + str(split) + " offset: " + str(offset))
         print("todo_file: " + todo_file + "\nok_file: " + str(ok_file))
 
-    process_mongo_year(todo_file, ok_file, process_year_from_mongo)
+    process_mongo_year_court(todo_file, ok_file, process_year_court_from_mongo)
 
     print('completed')

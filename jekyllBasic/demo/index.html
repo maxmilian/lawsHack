@@ -57,6 +57,7 @@ comments: false
             </div>
             <div style="margin: 10px;">
                 <button id="apply" type="button" class="btn btn-lg btn-primary">套用</button>
+                <button id="stabilize" type="button" class="btn btn-lg btn-primary">穩定</button>
             </div>
         </div>
     </div>
@@ -128,6 +129,10 @@ $("#apply").click(function() {
     history.pushState({}, null, url);
 
     draw();
+});
+
+$("#stabilize").click(function() {
+    viz.stabilize();
 });
 
 function parseUrlParameter() {
