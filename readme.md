@@ -6,7 +6,8 @@
 
 在這2個月的時間內，其實跟隊友討論過數次題目，因為我跟隊友工作也挺忙，所以進度頗慢。直到快要比賽前一週，才真的快速趕工生出此作品，真心覺得還不錯。
 
-[成果網站](http://legalhack.tech/)
+[投影片](https://docs.google.com/presentation/d/1TNbfmd9j1HpnODs-zgf0owjcRhAVpJm7wCC-BJuWlp0/edit?usp=sharing)
+~~[成果網站](http://legalhack.tech/)~~ 網域已過期
 
 ## 開放資料
 
@@ -32,7 +33,7 @@ nohup python3 -u citation.py 8 6 > citation_8_6.log &
 nohup python3 -u citation.py 8 7 > citation_8_7.log &
 nohup python3 -u citation.py 8 8 > citation_8_8.log &
 
-# import to neo4j
+# import to neo4j
 nohup python3 -u relatedCases.py 8 1 > relatedCases_8_1.log &
 nohup python3 -u relatedCases.py 8 2 > relatedCases_8_2.log &
 nohup python3 -u relatedCases.py 8 3 > relatedCases_8_3.log &
@@ -90,11 +91,16 @@ CALL algo.betweenness('CASE','REFER', {direction:'out',write:true, writeProperty
 
 ## 前端網頁
 
-這邊的前端頁面我找了很久，覺得沒有很適合的，所以還是直接使用 [jekyllBasic模板](https://github.com/bchetty/jekyllBasic)，最後的[成果網站](http://legalhack.tech/)。
+這邊的前端頁面我找了很久，覺得沒有很適合的，所以還是直接使用 [jekyllBasic模板](https://github.com/bchetty/jekyllBasic)。
 
 使用 ruby v2.6.4 並用以下方式開發、編譯
 
 ```sh
+# 安裝
+cd jekyllBasic
+gem install bundler
+bundle install
+
 # 開發
 bundle exec jekyll serve
 
